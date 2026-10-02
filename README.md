@@ -110,10 +110,16 @@ Check it with `php artisan notifications:test` (or `php artisan notifications:te
 
 ## Deploying (VPS)
 
-Live at https://oyayodihome.smartietls.online — an aaPanel site on OpenLiteSpeed with PHP 8.2. Under `/www/wwwroot/oyayodihome.smartietls.online/`:
+Two aaPanel sites on OpenLiteSpeed (PHP 8.2), so a problem is easy to place:
 
-- `app/`: this repository. The production `backend/.env` lives only here.
-- `web/`: the built frontend plus `deploy/web/` (`.htaccess` routes `/api` through `laravel.php` to Laravel). It is the site's *Running directory*.
+| Site | Serves | Folder |
+|---|---|---|
+| https://oyayodihome.smartietls.online | Frontend | `web/` (the site's *Running directory*): the build plus `deploy/web/.htaccess` |
+| https://api.oyayodihome.smartietls.online | Backend API | `deploy/api/` (`index.php` + `.htaccess`), which loads Laravel from `app/backend` |
+
+The repository is cloned once, as `app/` in the frontend site's folder; the production `backend/.env` lives only there. The frontend build calls the API through `VITE_API_URL` in `frontend/.env.production`, and the backend only accepts browser calls from `FRONTEND_URL` (`config/cors.php`).
+
+On this server, new sites must also be registered by hand in `/usr/local/lsws/conf/httpd_config.conf` (a `virtualhost` block plus a `map` line in the port 80 and 443 listeners), followed by `/usr/local/lsws/bin/lswsctrl restart`.
 
 To publish new code, push to GitHub, then on the VPS run:
 

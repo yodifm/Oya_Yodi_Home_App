@@ -1,0 +1,10 @@
+# OpenLiteSpeed rules for the API site (api.oyayodihome.smartietls.online),
+# copied there by deploy.sh. Every request goes to Laravel via index.php.
+RewriteEngine On
+
+# Pass the sign-in token through to PHP.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
