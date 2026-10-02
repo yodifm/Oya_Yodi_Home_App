@@ -19,7 +19,12 @@ API="$(dirname "$SITE")/api.$(basename "$SITE")"
 PHP="${PHP_BIN:-/www/server/php/82/bin/php} -d disable_functions="
 
 cd "$APP"
-git pull --ff-only
+# Pull, then restart on the freshly pulled copy of this script, so a deploy
+# never runs half old, half new steps.
+if [ -z "${DEPLOY_PULLED:-}" ]; then
+  git pull --ff-only
+  DEPLOY_PULLED=1 exec bash "$APP/deploy/deploy.sh" "$@"
+fi
 
 echo "== Backend"
 cd "$APP/backend"
