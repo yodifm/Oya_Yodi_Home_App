@@ -8,7 +8,7 @@ import { useAsync } from '../../hooks/useAsync'
 import { api } from '../../lib/api'
 import { cn } from '../../lib/cn'
 import { currentYear, formatCurrency, formatMonth } from '../../lib/format'
-import { categoryLabels } from '../../lib/labels'
+import { useCatalog } from '../catalog/useCatalog'
 import type { YearReport } from '../../types'
 import { TrendChart } from '../dashboard/TrendChart'
 
@@ -48,6 +48,7 @@ function YearDelta({ current, previous, year }: { current: number; previous: num
 }
 
 export function ReportsPage() {
+  const { categoryName } = useCatalog()
   const [year, setYear] = useState(currentYear)
   const { data, loading, error, reload } = useAsync(() => fetchReport(year), [year])
 
@@ -86,7 +87,7 @@ export function ReportsPage() {
             />
             <StatCard
               label="Largest category"
-              value={data.by_category[0] ? categoryLabels[data.by_category[0].category] : '—'}
+              value={data.by_category[0] ? categoryName(data.by_category[0].category) : '—'}
               caption={data.by_category[0] ? `${data.by_category[0].share}% of the year` : undefined}
             />
           </section>
@@ -107,7 +108,7 @@ export function ReportsPage() {
                     <div className="flex items-baseline justify-between gap-4">
                       <span className="flex items-baseline gap-3">
                         <span className="w-5 font-display text-sm italic text-muted-foreground/70">{i + 1}.</span>
-                        <span className="font-medium">{categoryLabels[row.category]}</span>
+                        <span className="font-medium">{categoryName(row.category)}</span>
                       </span>
                       <span className="whitespace-nowrap text-sm">
                         <span className="figure">{formatCurrency(row.total)}</span>
@@ -137,7 +138,7 @@ export function ReportsPage() {
                     return (
                       <li key={row.category} className="flex items-baseline justify-between gap-4 py-3">
                         <span>
-                          <span className="font-medium">{categoryLabels[row.category]}</span>
+                          <span className="font-medium">{categoryName(row.category)}</span>
                           <span className="block text-xs text-muted-foreground">
                             {formatCurrency(row.previous)} → {formatCurrency(row.current)}
                           </span>

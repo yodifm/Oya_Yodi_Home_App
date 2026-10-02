@@ -2,49 +2,24 @@
 
 namespace App\Notifications;
 
-use App\Enums\Bank;
-use App\Enums\ExpenseCategory;
-use App\Enums\PaymentMethod;
 use App\Enums\ReimbursementStatus;
+use App\Support\Catalog;
 use Illuminate\Support\HtmlString;
 
 /**
- * Display names for emails — the same wording the frontend uses
- * (frontend/src/lib/labels.ts), so an email reads like the app.
+ * Display names for emails, worded like the app: categories and payments come
+ * from the household-managed lists, statuses match frontend/src/lib/labels.ts.
  */
 final class Labels
 {
-    public static function category(ExpenseCategory $c): string
+    public static function category(string $key): string
     {
-        return match ($c) {
-            ExpenseCategory::Groceries => 'Groceries',
-            ExpenseCategory::Food => 'Food',
-            ExpenseCategory::Utilities => 'Utilities',
-            ExpenseCategory::Transport => 'Transport',
-            ExpenseCategory::Household => 'Household Supplies',
-            ExpenseCategory::Health => 'Health',
-            ExpenseCategory::Education => 'Education',
-            ExpenseCategory::Entertainment => 'Entertainment',
-            ExpenseCategory::Other => 'Other',
-        };
+        return Catalog::category($key);
     }
 
-    public static function payment(PaymentMethod $method, ?Bank $bank): string
+    public static function payment(string $method, ?string $account): string
     {
-        return match ($method) {
-            PaymentMethod::Cash => 'Cash',
-            PaymentMethod::EWallet => 'E-Wallet',
-            PaymentMethod::Transfer => $bank ? 'Transfer · '.self::bank($bank) : 'Bank Transfer',
-        };
-    }
-
-    public static function bank(Bank $bank): string
-    {
-        return match ($bank) {
-            Bank::Bca => 'BCA',
-            Bank::LineBank => 'Line Bank',
-            Bank::Mandiri => 'Mandiri',
-        };
+        return Catalog::payment($method, $account);
     }
 
     public static function status(ReimbursementStatus $s): string

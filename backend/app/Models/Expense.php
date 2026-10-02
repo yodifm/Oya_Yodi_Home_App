@@ -2,9 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\Bank;
-use App\Enums\ExpenseCategory;
-use App\Enums\PaymentMethod;
 use App\Models\Concerns\HasReceipt;
 use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,7 +26,7 @@ class Expense extends Model
         'amount',
         'spent_at',
         'payment_method',
-        'bank',
+        'payment_account',
         'paid_by',
         'notes',
     ];
@@ -60,9 +57,6 @@ class Expense extends Model
     protected function casts(): array
     {
         return [
-            'category' => ExpenseCategory::class,
-            'payment_method' => PaymentMethod::class,
-            'bank' => Bank::class,
             'amount' => 'integer',
             'spent_at' => 'date',
         ];

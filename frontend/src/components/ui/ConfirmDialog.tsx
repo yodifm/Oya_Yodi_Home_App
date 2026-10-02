@@ -6,6 +6,8 @@ interface ConfirmDialogProps {
   title: string
   message: string
   confirmLabel?: string
+  /** Shown on the button while busy. */
+  busyLabel?: string
   busy?: boolean
   /** Why the last attempt failed, shown above the buttons. */
   error?: string | null
@@ -18,6 +20,7 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel = 'Delete',
+  busyLabel = 'Deleting…',
   busy,
   error,
   onConfirm,
@@ -36,7 +39,7 @@ export function ConfirmDialog({
           Cancel
         </Button>
         <Button variant="danger" onClick={onConfirm} disabled={busy}>
-          {busy ? 'Deleting…' : confirmLabel}
+          {busy ? busyLabel : confirmLabel}
         </Button>
       </div>
     </Modal>

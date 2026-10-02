@@ -1,6 +1,6 @@
 import { cn } from '../../lib/cn'
 import { formatCurrency } from '../../lib/format'
-import { categoryLabels } from '../../lib/labels'
+import { useCatalog } from '../catalog/useCatalog'
 import type { DashboardSummary, ExpenseCategory } from '../../types'
 
 interface CategoryBreakdownProps {
@@ -16,6 +16,7 @@ interface CategoryBreakdownProps {
  * Each row doubles as a filter toggle for the whole overview.
  */
 export function CategoryBreakdown({ rows, selected, onSelect }: CategoryBreakdownProps) {
+  const { categoryName } = useCatalog()
   const max = rows[0]?.total ?? 0
   const total = rows.reduce((sum, r) => sum + r.total, 0)
 
@@ -35,7 +36,7 @@ export function CategoryBreakdown({ rows, selected, onSelect }: CategoryBreakdow
               type="button"
               onClick={() => onSelect(active ? '' : row.category)}
               aria-pressed={active}
-              title={active ? 'Show all categories' : `Show only ${categoryLabels[row.category]}`}
+              title={active ? 'Show all categories' : `Show only ${categoryName(row.category)}`}
               className={cn(
                 'w-full touch-manipulation rounded-md px-3 py-2.5 text-left transition-all duration-200 hover:bg-muted/60',
                 active && 'bg-accent-muted ring-1 ring-accent/30',
@@ -45,7 +46,7 @@ export function CategoryBreakdown({ rows, selected, onSelect }: CategoryBreakdow
               <span className="flex items-baseline justify-between gap-4">
                 <span className="flex items-baseline gap-3">
                   <span className="w-5 font-display text-sm italic text-muted-foreground/70">{i + 1}.</span>
-                  <span className="font-medium">{categoryLabels[row.category]}</span>
+                  <span className="font-medium">{categoryName(row.category)}</span>
                 </span>
                 <span className="whitespace-nowrap text-sm">
                   <span className="figure">{formatCurrency(row.total)}</span>

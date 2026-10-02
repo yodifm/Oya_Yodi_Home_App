@@ -14,8 +14,9 @@ export const planning: NavItem[] = [
 ]
 
 export const household: NavItem[] = [
-  { to: '/users', label: 'Users', numeral: 'VII' },
-  { to: '/activity', label: 'Activity', numeral: 'VIII' },
+  { to: '/categories', label: 'Categories & Payments', numeral: 'VII' },
+  { to: '/users', label: 'Users', numeral: 'VIII' },
+  { to: '/activity', label: 'Activity', numeral: 'IX' },
 ]
 
 /** Pages reached through "More" on phones (everything not in the tab bar). */

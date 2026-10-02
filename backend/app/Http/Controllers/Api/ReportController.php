@@ -63,7 +63,7 @@ class ReportController extends Controller
     /** @return list<array{category: string, total: int, share: float}> */
     private function byCategory(Collection $expenses, int $total): array
     {
-        return $expenses->groupBy(fn ($e) => $e->category->value)
+        return $expenses->groupBy('category')
             ->map(fn (Collection $rows, string $category) => [
                 'category' => $category,
                 'total' => (int) $rows->sum('amount'),

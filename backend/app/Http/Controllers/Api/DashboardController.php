@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\ExpenseCategory;
 use App\Enums\ReimbursementStatus;
 use App\Enums\WishlistStatus;
 use App\Http\Controllers\Controller;
@@ -24,7 +23,7 @@ class DashboardController extends Controller
     {
         $filters = $request->validate([
             'month' => ['nullable', 'date_format:Y-m'],
-            'category' => ['nullable', Rule::enum(ExpenseCategory::class)],
+            'category' => ['nullable', 'string', Rule::exists('categories', 'key')],
         ]);
         // The category narrows the spending figures, trend and recent list. The
         // by-category breakdown always lists every category so it can act as the picker.

@@ -5,6 +5,7 @@ import { FormActions } from '../../components/ui/FormActions'
 import { ReceiptField } from '../../components/ui/Receipt'
 import type { ReceiptChange } from '../../lib/receipts'
 import { today } from '../../lib/format'
+import { moneyInputProps } from '../../lib/money'
 import { reimbursementStatusLabels, toOptions } from '../../lib/labels'
 import type { Reimbursement, ReimbursementStatus } from '../../types'
 import { useMemberOptions } from '../auth/useAuth'
@@ -62,12 +63,8 @@ export function ReimbursementForm({ initial, saving, errors, onSubmit, onCancel,
         />
         <TextField
           label="Amount (Rp)"
-          type="number"
-          inputMode="numeric"
-          min={0}
           placeholder="0"
-          value={form.amount}
-          onChange={(e) => set('amount', e.target.value)}
+          {...moneyInputProps(form.amount, (v) => set('amount', v))}
           error={errors.amount}
           required
         />

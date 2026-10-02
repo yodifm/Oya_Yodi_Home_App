@@ -118,7 +118,7 @@ export function UsersPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Chapter VII — Users"
+        eyebrow="Chapter VIII — Users"
         title={
           <>
             The <span className="italic text-accent">Household</span>

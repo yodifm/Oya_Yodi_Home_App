@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ExpenseCategory;
 use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +15,7 @@ class Budget extends Model
     /** The category key; the frontend turns it into its display name. */
     public function activitySummary(): string
     {
-        return $this->category->value;
+        return $this->category;
     }
 
     protected $fillable = ['category', 'amount'];
@@ -24,7 +23,6 @@ class Budget extends Model
     protected function casts(): array
     {
         return [
-            'category' => ExpenseCategory::class,
             'amount' => 'integer',
         ];
     }

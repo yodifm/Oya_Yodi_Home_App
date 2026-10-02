@@ -17,12 +17,13 @@ import { useCrudPage } from '../../hooks/useCrudPage'
 import { useDebounced } from '../../hooks/useDebounced'
 import { useStepBackWhenEmpty } from '../../hooks/usePage'
 import { currentMonth, formatCurrency, formatDate, formatMonth } from '../../lib/format'
-import { categoryFilterOptions as categoryFilter, categoryLabels, paymentDisplay } from '../../lib/labels'
 import type { Expense } from '../../types'
+import { useCatalog } from '../catalog/useCatalog'
 import { expensesApi, exportExpenses } from './api'
 import { ExpenseForm } from './ExpenseForm'
 
 export function ExpensesPage() {
+  const { categoryName, paymentName, categoryFilterOptions: categoryFilter } = useCatalog()
   const [month, setMonth] = useState(currentMonth())
   const [category, setCategory] = useState('')
   const [search, setSearch] = useState('')
@@ -164,12 +165,12 @@ export function ExpensesPage() {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium">{e.title}</span>
                       <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                        {formatDate(e.spent_at, dateOpts)} · {categoryLabels[e.category]} · {e.paid_by}
+                        {formatDate(e.spent_at, dateOpts)} · {categoryName(e.category)} · {e.paid_by}
                       </span>
                     </span>
                     <span className="text-right">
                       <span className="figure block whitespace-nowrap text-base">{formatCurrency(e.amount)}</span>
-                      <span className="block whitespace-nowrap text-[0.6875rem] text-muted-foreground">{paymentDisplay(e.payment_method, e.bank)}</span>
+                      <span className="block whitespace-nowrap text-[0.6875rem] text-muted-foreground">{paymentName(e.payment_method, e.payment_account)}</span>
                     </span>
                   </button>
                   {e.has_receipt && (
@@ -202,9 +203,9 @@ export function ExpensesPage() {
                     <Td>
                       <p className="font-medium">{e.title}</p>
                     </Td>
-                    <Td className="text-muted-foreground">{categoryLabels[e.category]}</Td>
+                    <Td className="text-muted-foreground">{categoryName(e.category)}</Td>
                     <Td className="hidden text-muted-foreground lg:table-cell">
-                      {e.paid_by} <span className="text-muted-foreground/60">· {paymentDisplay(e.payment_method, e.bank)}</span>
+                      {e.paid_by} <span className="text-muted-foreground/60">· {paymentName(e.payment_method, e.payment_account)}</span>
                     </Td>
                     <Td className="figure whitespace-nowrap text-right text-base">{formatCurrency(e.amount)}</Td>
                     <Td>

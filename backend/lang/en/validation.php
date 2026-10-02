@@ -18,7 +18,7 @@ return [
         'saved_amount' => 'saved amount',
         'target_date' => 'target date',
         'url' => 'product link',
-        'bank' => 'bank',
+        'payment_account' => 'account',
     ],
 
     'values' => [

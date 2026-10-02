@@ -2,15 +2,16 @@
 
 namespace App\Services;
 
-use App\Enums\ExpenseCategory;
 use App\Models\Budget;
+use App\Models\Category;
 use App\Models\Expense;
 
 /** Budget limit vs. actual spending per category for one month. */
 class BudgetStatus
 {
     /**
-     * Every category, budgeted or not, in enum order.
+     * Every active category, budgeted or not, in the household's order. A hidden
+     * category keeps its budget row, but it is left out until shown again.
      *
      * @return list<array{category: string, limit: int|null, spent: int}>
      */
@@ -22,11 +23,11 @@ class BudgetStatus
             ->groupBy('category')
             ->pluck('total', 'category');
 
-        return collect(ExpenseCategory::cases())
-            ->map(fn (ExpenseCategory $c) => [
-                'category' => $c->value,
-                'limit' => isset($limits[$c->value]) ? (int) $limits[$c->value] : null,
-                'spent' => (int) ($spent[$c->value] ?? 0),
+        return Category::active()->ordered()->pluck('key')
+            ->map(fn (string $key) => [
+                'category' => $key,
+                'limit' => isset($limits[$key]) ? (int) $limits[$key] : null,
+                'spent' => (int) ($spent[$key] ?? 0),
             ])
             ->all();
     }

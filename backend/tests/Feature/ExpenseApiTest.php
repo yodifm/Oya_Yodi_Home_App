@@ -53,21 +53,21 @@ class ExpenseApiTest extends TestCase
     {
         $this->postJson('/api/expenses', $this->payload(['payment_method' => 'transfer']))
             ->assertUnprocessable()
-            ->assertJsonPath('errors.bank.0', 'The bank field is required when payment method is bank transfer.');
+            ->assertJsonPath('errors.payment_account.0', 'Choose which account paid.');
 
-        $this->postJson('/api/expenses', $this->payload(['payment_method' => 'transfer', 'bank' => 'jago']))
+        $this->postJson('/api/expenses', $this->payload(['payment_method' => 'transfer', 'payment_account' => 'jago']))
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('bank');
+            ->assertJsonValidationErrors('payment_account');
 
-        $id = $this->postJson('/api/expenses', $this->payload(['payment_method' => 'transfer', 'bank' => 'line_bank']))
+        $id = $this->postJson('/api/expenses', $this->payload(['payment_method' => 'transfer', 'payment_account' => 'line_bank']))
             ->assertCreated()
-            ->assertJsonPath('data.bank', 'line_bank')
+            ->assertJsonPath('data.payment_account', 'line_bank')
             ->json('data.id');
 
         // Switching to cash drops the bank rather than rejecting the request.
-        $this->putJson("/api/expenses/{$id}", $this->payload(['payment_method' => 'cash', 'bank' => 'line_bank']))
+        $this->putJson("/api/expenses/{$id}", $this->payload(['payment_method' => 'cash', 'payment_account' => 'line_bank']))
             ->assertOk()
-            ->assertJsonPath('data.bank', null);
+            ->assertJsonPath('data.payment_account', null);
     }
 
     public function test_purchases_by_transfer_need_a_bank_too(): void
@@ -75,9 +75,9 @@ class ExpenseApiTest extends TestCase
         $item = WishlistItem::factory()->create();
         $purchase = ['amount' => 1000, 'category' => 'household', 'spent_at' => now()->toDateString(), 'payment_method' => 'transfer', 'paid_by' => 'Yodi'];
 
-        $this->postJson("/api/wishlist/{$item->id}/purchase", $purchase)->assertJsonValidationErrors('bank');
-        $this->postJson("/api/wishlist/{$item->id}/purchase", [...$purchase, 'bank' => 'mandiri'])->assertOk();
-        $this->assertSame('mandiri', Expense::latest('id')->first()->bank->value);
+        $this->postJson("/api/wishlist/{$item->id}/purchase", $purchase)->assertJsonValidationErrors('payment_account');
+        $this->postJson("/api/wishlist/{$item->id}/purchase", [...$purchase, 'payment_account' => 'mandiri'])->assertOk();
+        $this->assertSame('mandiri', Expense::latest('id')->first()->payment_account);
     }
 
     public function test_food_is_a_category(): void

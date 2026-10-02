@@ -28,7 +28,7 @@ class ActivityLogTest extends TestCase
     {
         return [
             'title' => 'Electricity bill', 'category' => 'utilities', 'amount' => 600000,
-            'spent_at' => now()->toDateString(), 'payment_method' => 'cash', 'bank' => null,
+            'spent_at' => now()->toDateString(), 'payment_method' => 'cash', 'payment_account' => null,
             'paid_by' => 'Oya', 'notes' => null, ...$overrides,
         ];
     }
@@ -63,12 +63,12 @@ class ActivityLogTest extends TestCase
         Storage::fake('local');
         $id = $this->postJson('/api/expenses', $this->payload())->json('data.id');
 
-        $this->putJson("/api/expenses/{$id}", $this->payload(['payment_method' => 'transfer', 'bank' => 'bca', 'spent_at' => now()->subDay()->toDateString()]));
+        $this->putJson("/api/expenses/{$id}", $this->payload(['payment_method' => 'transfer', 'payment_account' => 'bca', 'spent_at' => now()->subDay()->toDateString()]));
         $this->post("/api/expenses/{$id}/receipt", ['receipt' => UploadedFile::fake()->image('nota.jpg')], ['Accept' => 'application/json']);
 
         [$receipt, $edit] = $this->getJson('/api/activity')->json('data');
         $this->assertSame(['cash', 'transfer'], $edit['changes']['payment_method']);
-        $this->assertSame([null, 'bca'], $edit['changes']['bank']);
+        $this->assertSame([null, 'bca'], $edit['changes']['payment_account']);
         $this->assertSame([now()->toDateString(), now()->subDay()->toDateString()], $edit['changes']['spent_at']);
         $this->assertSame(['receipt' => [false, true]], $receipt['changes']);
     }

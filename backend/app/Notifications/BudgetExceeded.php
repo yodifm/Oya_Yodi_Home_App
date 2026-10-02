@@ -2,7 +2,6 @@
 
 namespace App\Notifications;
 
-use App\Enums\ExpenseCategory;
 use App\Support\Rupiah;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -15,7 +14,7 @@ class BudgetExceeded extends Notification
     use Queueable;
 
     public function __construct(
-        public ExpenseCategory $category,
+        public string $category,
         public int $limit,
         public int $spent,
         public string $month,

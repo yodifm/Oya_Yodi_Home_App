@@ -1,15 +1,17 @@
 import { formatCurrency, formatDate } from '../../lib/format'
-import {
-  bankLabels,
-  categoryLabels,
-  paymentLabels,
-  priorityLabels,
-  reimbursementStatusLabels,
-  wishlistStatusLabels,
-} from '../../lib/labels'
+import { priorityLabels, reimbursementStatusLabels, wishlistStatusLabels } from '../../lib/labels'
+import type { CatalogHelpers } from '../catalog/useCatalog'
 
 export type ActivityAction = 'created' | 'updated' | 'deleted'
-export type ActivitySubject = 'expense' | 'reimbursement' | 'wishlist_item' | 'budget' | 'user'
+export type ActivitySubject =
+  | 'expense'
+  | 'reimbursement'
+  | 'wishlist_item'
+  | 'budget'
+  | 'user'
+  | 'category'
+  | 'payment_method'
+  | 'payment_account'
 
 export interface ActivityEntry {
   id: number
@@ -24,11 +26,14 @@ export interface ActivityEntry {
   created_at: string
 }
 
-export const subjectLabels: Record<ActivitySubject, string> = {
+/** The type filter; "payment" covers payment methods and their accounts. */
+export const typeFilterLabels: Record<string, string> = {
   expense: 'Expenses',
   reimbursement: 'Reimbursements',
   wishlist_item: 'Wishlist',
   budget: 'Budgets',
+  category: 'Categories',
+  payment: 'Payments',
   user: 'Users',
 }
 
@@ -38,6 +43,9 @@ const nouns: Record<ActivitySubject, string> = {
   wishlist_item: 'a wish',
   budget: 'a budget',
   user: 'a user',
+  category: 'a category',
+  payment_method: 'a payment method',
+  payment_account: 'a payment account',
 }
 
 const verbs: Record<ActivityAction, string> = { created: 'added', updated: 'edited', deleted: 'removed' }
@@ -46,8 +54,8 @@ const verbs: Record<ActivityAction, string> = { created: 'added', updated: 'edit
 export const describe = (e: ActivityEntry) => `${verbs[e.action]} ${nouns[e.subject_type]}`
 
 /** Budgets are stored by category key; everything else already reads well. */
-export const summaryText = (e: ActivityEntry) =>
-  e.subject_type === 'budget' ? `${categoryLabels[e.summary as keyof typeof categoryLabels] ?? e.summary} budget` : e.summary
+export const summaryText = (e: ActivityEntry, catalog: CatalogHelpers) =>
+  e.subject_type === 'budget' ? `${catalog.categoryName(e.summary)} budget` : e.summary
 
 const fieldLabels: Record<string, string> = {
   title: 'Description',
@@ -60,7 +68,9 @@ const fieldLabels: Record<string, string> = {
   target_date: 'Target date',
   category: 'Category',
   payment_method: 'Payment',
+  payment_account: 'Account',
   bank: 'Bank',
+  archived: 'Hidden',
   paid_by: 'Paid by',
   claimant: 'Claimed by',
   status: 'Status',
@@ -78,16 +88,18 @@ const money = new Set(['amount', 'estimated_price', 'saved_amount'])
 const dates = new Set(['spent_at', 'submitted_at', 'target_date'])
 
 /** One side of a change, shown the way the rest of the app shows it. */
-export function formatValue(subject: ActivitySubject, field: string, value: unknown): string {
+export function formatValue(subject: ActivitySubject, field: string, value: unknown, catalog: CatalogHelpers): string {
   if (value === null || value === undefined || value === '') return '—'
   const v = String(value)
   if (money.has(field)) return formatCurrency(Number(value))
   if (dates.has(field)) return formatDate(v)
   if (field === 'receipt') return value ? 'attached' : 'none'
+  if (field === 'archived') return value ? 'yes' : 'no'
+  if (field === 'category') return catalog.categoryName(v)
+  if (field === 'payment_method') return catalog.methodName(v)
+  // Older entries call the account "bank".
+  if (field === 'payment_account' || field === 'bank') return catalog.accountName(v)
   const lookup: Record<string, Record<string, string>> = {
-    category: categoryLabels,
-    payment_method: paymentLabels,
-    bank: bankLabels,
     priority: priorityLabels,
     status: subject === 'wishlist_item' ? wishlistStatusLabels : reimbursementStatusLabels,
   }

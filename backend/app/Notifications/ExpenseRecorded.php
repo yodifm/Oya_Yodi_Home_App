@@ -34,7 +34,7 @@ class ExpenseRecorded extends Notification
                 'Amount' => Rupiah::format($e->amount),
                 'Category' => Labels::category($e->category),
                 'Date' => $e->spent_at->format('j M Y'),
-                'Paid by' => $e->paid_by.' · '.Labels::payment($e->payment_method, $e->bank),
+                'Paid by' => $e->paid_by.' · '.Labels::payment($e->payment_method, $e->payment_account),
                 'Notes' => $e->notes,
             ])))
             ->action('Open the expense book', Labels::appUrl('/expenses'));

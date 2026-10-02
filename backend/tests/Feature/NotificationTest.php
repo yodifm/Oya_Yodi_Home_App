@@ -35,7 +35,7 @@ class NotificationTest extends TestCase
     {
         return [
             'title' => 'Groceries run', 'category' => 'groceries', 'amount' => 100000,
-            'spent_at' => now()->toDateString(), 'payment_method' => 'cash', 'bank' => null,
+            'spent_at' => now()->toDateString(), 'payment_method' => 'cash', 'payment_account' => null,
             'paid_by' => 'Oya', 'notes' => null, ...$overrides,
         ];
     }
@@ -58,7 +58,7 @@ class NotificationTest extends TestCase
 
     public function test_the_email_reads_like_the_app(): void
     {
-        $this->postJson('/api/expenses', $this->expense(['amount' => 609500, 'payment_method' => 'transfer', 'bank' => 'bca']));
+        $this->postJson('/api/expenses', $this->expense(['amount' => 609500, 'payment_method' => 'transfer', 'payment_account' => 'bca']));
 
         Notification::assertSentTo($this->yodi, ExpenseRecorded::class, function (ExpenseRecorded $n) {
             $mail = $n->toMail($this->yodi);
@@ -95,7 +95,7 @@ class NotificationTest extends TestCase
 
         $this->postJson("/api/wishlist/{$wish->id}/purchase", [
             'amount' => 900000, 'category' => 'household', 'spent_at' => now()->toDateString(),
-            'payment_method' => 'cash', 'bank' => null, 'paid_by' => 'Oya',
+            'payment_method' => 'cash', 'payment_account' => null, 'paid_by' => 'Oya',
         ])->assertOk();
 
         Notification::assertSentTo($this->yodi, ExpenseRecorded::class);

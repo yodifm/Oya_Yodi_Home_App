@@ -2,15 +2,14 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\ExpenseCategory;
-use App\Enums\PaymentMethod;
-use App\Http\Requests\Concerns\ValidatesPaymentBank;
+use App\Http\Requests\Concerns\ValidatesPayment;
+use App\Support\Catalog;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class ExpenseRequest extends FormRequest
 {
-    use ValidatesPaymentBank;
+    use ValidatesPayment;
 
     public function authorize(): bool
     {
@@ -20,13 +19,14 @@ class ExpenseRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        $current = $this->route('expense');
+
         return [
             'title' => ['required', 'string', 'max:255'],
-            'category' => ['required', Rule::enum(ExpenseCategory::class)],
+            'category' => ['required', 'string', Catalog::activeKey('categories', $current?->category)],
             'amount' => ['required', 'integer', 'min:1'],
             'spent_at' => ['required', 'date', 'before_or_equal:today'],
-            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
-            ...$this->bankRules(),
+            ...$this->paymentRules($current),
             'paid_by' => ['required', 'string', Rule::exists('users', 'name')],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];

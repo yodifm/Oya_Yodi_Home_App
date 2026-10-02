@@ -1,44 +1,47 @@
 import { SelectField } from '../../components/ui/Field'
-import { bankLabels, paymentLabels, toOptions } from '../../lib/labels'
-import type { Bank, PaymentMethod } from '../../types'
-
-const bankOptions = [{ value: '', label: 'Choose a bank…' }, ...toOptions(bankLabels)]
+import { useCatalog } from '../catalog/useCatalog'
 
 /**
- * Payment method, plus a bank picker that appears only for bank transfers.
+ * Payment method, plus an account picker (the bank for Bank Transfer, the
+ * wallet for E-Wallet…) that appears only when the method has accounts.
  * Renders as grid cells, so it drops straight into a two-column form grid.
- * The bank starts unchosen on purpose: picking the wrong account by default
+ * The account starts unchosen on purpose: picking the wrong one by default
  * would go unnoticed.
  */
 export function PaymentFields({
   method,
-  bank,
+  account,
+  initial,
   onMethodChange,
-  onBankChange,
+  onAccountChange,
   errors,
 }: {
-  method: PaymentMethod
-  bank: Bank | ''
-  onMethodChange: (method: PaymentMethod) => void
-  onBankChange: (bank: Bank | '') => void
+  method: string
+  account: string
+  /** The record's saved choices, kept selectable even if hidden since. */
+  initial?: { method: string; account: string | null }
+  onMethodChange: (method: string) => void
+  onAccountChange: (account: string) => void
   errors: Record<string, string>
 }) {
+  const { methodOptions, accountOptions, needsAccount } = useCatalog()
+
   return (
     <>
       <SelectField
         label="Payment Method"
-        options={toOptions(paymentLabels)}
+        options={methodOptions(initial?.method)}
         value={method}
-        onChange={(e) => onMethodChange(e.target.value as PaymentMethod)}
+        onChange={(e) => onMethodChange(e.target.value)}
         error={errors.payment_method}
       />
-      {method === 'transfer' && (
+      {needsAccount(method) && (
         <SelectField
-          label="Bank"
-          options={bankOptions}
-          value={bank}
-          onChange={(e) => onBankChange(e.target.value as Bank | '')}
-          error={errors.bank}
+          label={method === 'transfer' ? 'Bank' : 'Account'}
+          options={[{ value: '', label: 'Choose…' }, ...accountOptions(method, initial?.account)]}
+          value={account}
+          onChange={(e) => onAccountChange(e.target.value)}
+          error={errors.payment_account}
           required
         />
       )}

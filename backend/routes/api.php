@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BudgetController;
+use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\ReceiptController;
@@ -45,6 +46,21 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::delete('/', 'destroy')->defaults('type', $type);
             });
     }
+
+    // Categories & Payments page. {list} picks which list CatalogController works on.
+    Route::controller(CatalogController::class)->group(function () {
+        Route::get('catalog', 'index');
+        foreach (['categories' => 'category', 'payment-methods' => 'method'] as $path => $list) {
+            Route::post($path, 'store')->defaults('list', $list);
+            Route::put("{$path}/order", 'reorder')->defaults('list', $list);
+            Route::patch("{$path}/{id}", 'update')->whereNumber('id')->defaults('list', $list);
+            Route::delete("{$path}/{id}", 'destroy')->whereNumber('id')->defaults('list', $list);
+        }
+        Route::post('payment-methods/{paymentMethod}/accounts', 'store')->defaults('list', 'account');
+        Route::put('payment-methods/{paymentMethod}/accounts/order', 'reorder')->defaults('list', 'account');
+        Route::patch('payment-accounts/{id}', 'update')->whereNumber('id')->defaults('list', 'account');
+        Route::delete('payment-accounts/{id}', 'destroy')->whereNumber('id')->defaults('list', 'account');
+    });
 
     Route::apiResource('users', UserController::class)->except('show');
     Route::get('activity', ActivityController::class);

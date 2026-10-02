@@ -18,7 +18,7 @@ class ExpenseResource extends JsonResource
             'amount' => $this->amount,
             'spent_at' => $this->spent_at->toDateString(),
             'payment_method' => $this->payment_method,
-            'bank' => $this->bank,
+            'payment_account' => $this->payment_account,
             'paid_by' => $this->paid_by,
             'notes' => $this->notes,
             'has_receipt' => $this->hasReceipt(),

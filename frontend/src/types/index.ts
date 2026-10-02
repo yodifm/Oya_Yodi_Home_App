@@ -5,21 +5,33 @@ export interface User {
   email: string
 }
 
-export type ExpenseCategory =
-  | 'groceries'
-  | 'food'
-  | 'utilities'
-  | 'transport'
-  | 'household'
-  | 'health'
-  | 'education'
-  | 'entertainment'
-  | 'other'
+/** A category key; names and order live in the catalog (Categories & Payments page). */
+export type ExpenseCategory = string
 
-export type PaymentMethod = 'cash' | 'transfer' | 'e-wallet'
+/** A payment method key (cash, transfer, …), from the catalog. */
+export type PaymentMethod = string
 
-/** The account a bank transfer came from. */
-export type Bank = 'bca' | 'line_bank' | 'mandiri'
+/** One entry of a household-managed list (category, payment method or account). */
+export interface CatalogItem {
+  id: number
+  /** What records store; never changes, even on rename. */
+  key: string
+  name: string
+  /** Hidden from new entries; kept because records still use it. */
+  archived: boolean
+  /** How many expenses use it. */
+  usage: number
+}
+
+export interface PaymentMethodItem extends CatalogItem {
+  /** Banks, e-wallets…: when it has any active, an expense must say which. */
+  accounts: CatalogItem[]
+}
+
+export interface Catalog {
+  categories: CatalogItem[]
+  payment_methods: PaymentMethodItem[]
+}
 
 export interface Expense {
   id: number
@@ -28,8 +40,8 @@ export interface Expense {
   amount: number
   spent_at: string
   payment_method: PaymentMethod
-  /** Set for bank transfers; null for cash/e-wallet (and older transfers). */
-  bank: Bank | null
+  /** The account used (BCA, GoPay…) when the method has accounts; otherwise null. */
+  payment_account: string | null
   paid_by: string
   notes: string | null
   has_receipt: boolean

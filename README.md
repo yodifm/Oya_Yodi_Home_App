@@ -3,11 +3,12 @@
 Our household book: an admin dashboard for tracking and analysing home spending.
 
 - **Overview**: the month at a glance, filterable by category, with budget progress.
-- **Expenses**: paginated, searchable across all months, CSV export and an optional receipt photo per entry. Bank transfers record which account paid (BCA, Line Bank or Mandiri; the list lives in `backend/app/Enums/Bank.php` and `frontend/src/lib/labels.ts`).
+- **Expenses**: paginated, searchable across all months, CSV export and an optional receipt photo per entry. Amounts are typed with thousands dots (199.000). A payment method with accounts (Bank Transfer → BCA, Line Bank, Mandiri) asks which one paid.
 - **Reimbursements**: claims moving through *Pending → Approved → Paid/Rejected*, with optional receipts.
 - **Wishlist**: things we would like to buy. *Mark purchased* records the expense in the same step.
 - **Budgets**: a standing monthly limit per category (on track / nearly spent / over).
 - **Reports**: the year by month and category, the average month, and the biggest movers.
+- **Categories & Payments**: the category list and the payment methods with their accounts (banks, e-wallets): add, rename, reorder (the order of every dropdown), and delete. Something already used is hidden instead of deleted, so past expenses, budgets and reports keep their names; it can be shown again.
 - **Users**: the sign-in accounts, which are also the "Paid by" / "Claimed by" options.
 - **Activity**: who added, edited or removed what, and when — with old → new values for edits. Recorded automatically by the backend (passwords never stored).
 
@@ -142,12 +143,15 @@ After editing `.env` on the VPS, run `php artisan optimize` (or the deploy scrip
 | GET | `/api/expenses/export?month=…&category=…&q=…` | CSV (UTF-8 with BOM, opens in Excel) |
 | GET/POST/DELETE | `/api/expenses/{id}/receipt`, `/api/reimbursements/{id}/receipt` | Optional receipt: JPG, PNG, WEBP or PDF, up to 8 MB |
 | POST | `/api/wishlist/{id}/purchase` | Marks the item purchased and records the expense |
-| GET · PUT | `/api/budgets` · `/api/budgets/{category}` | Monthly limits; `{amount: null}` removes one |
+| GET · PUT | `/api/budgets` · `/api/budgets/{category}` | Monthly limits per active category; `{amount: null}` removes one |
+| GET | `/api/catalog` | Categories and payment methods (with accounts), hidden ones marked, with usage counts |
+| POST · PATCH · DELETE | `/api/categories`, `/api/payment-methods`, `/api/payment-methods/{id}/accounts` · `/api/payment-accounts/{id}` | `{name}` to add; PATCH `{name?, archived?}`; DELETE removes an unused item, hides a used one |
+| PUT | `/api/categories/order`, `/api/payment-methods/order`, `/api/payment-methods/{id}/accounts/order` | `{ids: [...]}` in the new order |
 | GET | `/api/reports?year=YYYY` | Year summary |
 | GET | `/api/activity?user_id=…&subject_type=…` | Change history, newest first (30 per page) |
 | GET/POST/PUT/DELETE | `/api/users` | Manage sign-in accounts. A rename carries through to existing records; users who still have records, or yourself, cannot be deleted |
 
-Amounts are stored as whole rupiah (integers). Receipts are stored privately in `backend/storage/app/private/receipts` and only served to signed-in users. Friendly field names for validation messages are in `backend/lang/en`.
+Amounts are stored as whole rupiah (integers). Expenses and budgets store category and payment *keys* (`transport`, `transfer`, `bca`), which never change when an item is renamed. Receipts are stored privately in `backend/storage/app/private/receipts` and only served to signed-in users. Friendly field names for validation messages are in `backend/lang/en`.
 
 ## Frontend structure
 

@@ -5,9 +5,10 @@ import { FormActions } from '../../components/ui/FormActions'
 import { ReceiptField } from '../../components/ui/Receipt'
 import type { ReceiptChange } from '../../lib/receipts'
 import { today } from '../../lib/format'
-import { bankForSubmit, categoryLabels, toOptions } from '../../lib/labels'
-import type { Bank, Expense, ExpenseCategory, PaymentMethod } from '../../types'
+import { moneyInputProps } from '../../lib/money'
+import type { Expense } from '../../types'
 import { useMemberOptions } from '../auth/useAuth'
+import { useCatalog } from '../catalog/useCatalog'
 import type { ExpenseInput } from './api'
 import { PaymentFields } from './PaymentFields'
 
@@ -23,17 +24,19 @@ interface ExpenseFormProps {
 
 export function ExpenseForm({ initial, saving, errors, onSubmit, onCancel, onDelete }: ExpenseFormProps) {
   const { options: memberOptions, defaultName } = useMemberOptions()
+  const { categoryOptions, defaultCategory, defaultMethod, needsAccount } = useCatalog()
   const [form, setForm] = useState({
     title: initial?.title ?? '',
-    category: initial?.category ?? ('groceries' as ExpenseCategory),
+    category: initial?.category ?? defaultCategory('groceries'),
     amount: initial ? String(initial.amount) : '',
     spent_at: initial?.spent_at ?? today(),
-    payment_method: initial?.payment_method ?? ('transfer' as PaymentMethod),
-    bank: (initial?.bank ?? '') as Bank | '',
+    payment_method: initial?.payment_method ?? defaultMethod(),
+    payment_account: initial?.payment_account ?? '',
     paid_by: initial?.paid_by ?? defaultName,
     notes: initial?.notes ?? '',
   })
   const [receipt, setReceipt] = useState<ReceiptChange>({ kind: 'keep' })
+  const showsAccount = needsAccount(form.payment_method)
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
@@ -41,7 +44,12 @@ export function ExpenseForm({ initial, saving, errors, onSubmit, onCancel, onDel
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     onSubmit(
-      { ...form, amount: Number(form.amount), bank: bankForSubmit(form.payment_method, form.bank), notes: form.notes || null },
+      {
+        ...form,
+        amount: Number(form.amount),
+        payment_account: showsAccount ? form.payment_account || null : null,
+        notes: form.notes || null,
+      },
       receipt,
     )
   }
@@ -61,12 +69,8 @@ export function ExpenseForm({ initial, saving, errors, onSubmit, onCancel, onDel
         />
         <TextField
           label="Amount (Rp)"
-          type="number"
-          inputMode="numeric"
-          min={0}
           placeholder="0"
-          value={form.amount}
-          onChange={(e) => set('amount', e.target.value)}
+          {...moneyInputProps(form.amount, (v) => set('amount', v))}
           error={errors.amount}
           required
         />
@@ -80,21 +84,22 @@ export function ExpenseForm({ initial, saving, errors, onSubmit, onCancel, onDel
         />
         <SelectField
           label="Category"
-          options={toOptions(categoryLabels)}
+          options={categoryOptions(initial?.category)}
           value={form.category}
-          onChange={(e) => set('category', e.target.value as ExpenseCategory)}
+          onChange={(e) => set('category', e.target.value)}
           error={errors.category}
         />
         <PaymentFields
           method={form.payment_method}
-          bank={form.bank}
+          account={form.payment_account}
+          initial={initial ? { method: initial.payment_method, account: initial.payment_account } : undefined}
           onMethodChange={(m) => set('payment_method', m)}
-          onBankChange={(b) => set('bank', b)}
+          onAccountChange={(a) => set('payment_account', a)}
           errors={errors}
         />
         <SelectField
           label="Paid By"
-          wrapperClassName={form.payment_method === 'transfer' ? undefined : 'sm:col-span-2'}
+          wrapperClassName={showsAccount ? undefined : 'sm:col-span-2'}
           options={memberOptions}
           value={form.paid_by}
           onChange={(e) => set('paid_by', e.target.value)}

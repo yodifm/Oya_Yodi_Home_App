@@ -1,6 +1,6 @@
 import { api, resource } from '../../lib/api'
 import type { BadgeTone } from '../../components/ui/Badge'
-import type { Bank, ExpenseCategory, PaymentMethod, WishlistItem, WishlistPriority, WishlistStatus } from '../../types'
+import type { ExpenseCategory, PaymentMethod, WishlistItem, WishlistPriority, WishlistStatus } from '../../types'
 
 // Set by the server, never by the edit form: the purchase link and who added it.
 export type WishlistInput = Omit<WishlistItem, 'id' | 'expense_id' | 'created_by' | 'created_at'>
@@ -12,7 +12,7 @@ export interface PurchaseInput {
   category: ExpenseCategory
   spent_at: string
   payment_method: PaymentMethod
-  bank: Bank | null
+  payment_account: string | null
   paid_by: string
 }
 

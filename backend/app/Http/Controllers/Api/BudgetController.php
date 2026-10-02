@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\ExpenseCategory;
 use App\Http\Controllers\Controller;
 use App\Models\Budget;
+use App\Models\Category;
 use App\Services\BudgetStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ class BudgetController extends Controller
 {
     public function __construct(private BudgetStatus $status) {}
 
-    /** All categories with their limit (or null) and this month's spending. */
+    /** Every active category with its limit (or null) and this month's spending. */
     public function index(Request $request): JsonResponse
     {
         $month = $request->validate(['month' => ['nullable', 'date_format:Y-m']])['month'] ?? now()->format('Y-m');
@@ -22,16 +22,17 @@ class BudgetController extends Controller
     }
 
     /** Set a category's monthly limit; a null/empty amount removes the budget. */
-    public function update(Request $request, ExpenseCategory $category): JsonResponse
+    public function update(Request $request, string $category): JsonResponse
     {
+        abort_unless(Category::active()->where('key', $category)->exists(), 404);
         $amount = $request->validate(['amount' => ['nullable', 'integer', 'min:1']])['amount'] ?? null;
 
         if ($amount === null) {
-            Budget::where('category', $category)->delete();
+            Budget::where('category', $category)->first()?->delete();
         } else {
             Budget::updateOrCreate(['category' => $category], ['amount' => $amount]);
         }
 
-        return response()->json(['category' => $category->value, 'limit' => $amount]);
+        return response()->json(['category' => $category, 'limit' => $amount]);
     }
 }

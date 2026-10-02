@@ -11,7 +11,10 @@ use Illuminate\Validation\Rule;
 /** The household's change history, newest first. */
 class ActivityController extends Controller
 {
-    public const TYPES = ['expense', 'reimbursement', 'wishlist_item', 'budget', 'user'];
+    public const TYPES = ['expense', 'reimbursement', 'wishlist_item', 'budget', 'user', 'category', 'payment'];
+
+    /** Filter values that cover several stored types. */
+    private const TYPE_GROUPS = ['payment' => ['payment_method', 'payment_account']];
 
     public function __invoke(Request $request): JsonResponse
     {
@@ -23,7 +26,7 @@ class ActivityController extends Controller
         $page = ActivityLog::query()
             ->with('user:id,name')
             ->when($filters['user_id'] ?? null, fn ($q, $id) => $q->where('user_id', $id))
-            ->when($filters['subject_type'] ?? null, fn ($q, $type) => $q->where('subject_type', $type))
+            ->when($filters['subject_type'] ?? null, fn ($q, $type) => $q->whereIn('subject_type', self::TYPE_GROUPS[$type] ?? [$type]))
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate(30)

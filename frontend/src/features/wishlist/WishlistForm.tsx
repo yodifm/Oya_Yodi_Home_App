@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { SelectField, TextAreaField, TextField } from '../../components/ui/Field'
 import { FormActions } from '../../components/ui/FormActions'
 import { priorityLabels, toOptions, wishlistStatusLabels } from '../../lib/labels'
+import { moneyInputProps } from '../../lib/money'
 import type { WishlistItem, WishlistPriority, WishlistStatus } from '../../types'
 import type { WishlistInput } from './api'
 
@@ -56,21 +57,13 @@ export function WishlistForm({ initial, saving, errors, onSubmit, onCancel }: Wi
         />
         <TextField
           label="Estimated Price (Rp)"
-          type="number"
-          inputMode="numeric"
-          min={0}
-          value={form.estimated_price}
-          onChange={(e) => set('estimated_price', e.target.value)}
+          {...moneyInputProps(form.estimated_price, (v) => set('estimated_price', v))}
           error={errors.estimated_price}
           required
         />
         <TextField
           label="Saved So Far (Rp)"
-          type="number"
-          inputMode="numeric"
-          min={0}
-          value={form.saved_amount}
-          onChange={(e) => set('saved_amount', e.target.value)}
+          {...moneyInputProps(form.saved_amount, (v) => set('saved_amount', v))}
           error={errors.saved_amount}
         />
         <SelectField

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\ExpenseCategory;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ExpenseRequest;
 use App\Http\Resources\ExpenseResource;
 use App\Models\Expense;
 use App\Services\HouseholdNotifier;
+use App\Support\Catalog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -46,17 +46,17 @@ class ExpenseController extends Controller
             $out = fopen('php://output', 'w');
             // BOM so Excel reads UTF-8; "sep=," so Excel splits columns even in locales that use ";".
             fwrite($out, "\xEF\xBB\xBFsep=,\n");
-            fputcsv($out, ['Date', 'Description', 'Category', 'Amount (IDR)', 'Payment method', 'Bank', 'Paid by', 'Notes']);
+            fputcsv($out, ['Date', 'Description', 'Category', 'Amount (IDR)', 'Payment method', 'Account', 'Paid by', 'Notes']);
 
             Expense::filter($filters)->orderBy('spent_at')->orderBy('id')
                 ->lazy()
                 ->each(fn (Expense $e) => fputcsv($out, [
                     $e->spent_at->toDateString(),
                     $e->title,
-                    $e->category->value,
+                    Catalog::category($e->category),
                     $e->amount,
-                    $e->payment_method->value,
-                    $e->bank?->value,
+                    Catalog::payment($e->payment_method, null),
+                    $e->payment_account ? Catalog::account($e->payment_account) : null,
                     $e->paid_by,
                     $e->notes,
                 ]));
@@ -105,7 +105,7 @@ class ExpenseController extends Controller
         return $request->validate([
             'month' => ['nullable', 'date_format:Y-m'],
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
-            'category' => ['nullable', Rule::enum(ExpenseCategory::class)],
+            'category' => ['nullable', 'string', Rule::exists('categories', 'key')],
             'q' => ['nullable', 'string', 'max:100'],
         ]);
     }

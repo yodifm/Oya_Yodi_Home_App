@@ -11,8 +11,8 @@ import { ErrorState, LoadingState } from '../../components/ui/States'
 import { useAsync } from '../../hooks/useAsync'
 import { cn } from '../../lib/cn'
 import { currentMonth, formatCurrency, formatDate, formatMonth } from '../../lib/format'
-import { categoryFilterOptions as categoryFilter, categoryLabels } from '../../lib/labels'
 import type { ExpenseCategory } from '../../types'
+import { useCatalog } from '../catalog/useCatalog'
 import { fetchDashboard } from './api'
 import { BudgetBar } from '../budgets/BudgetBar'
 import { CategoryBreakdown } from './CategoryBreakdown'
@@ -62,10 +62,11 @@ function JumpLink({ to, numeral, label, caption }: { to: string; numeral: string
 }
 
 export function DashboardPage() {
+  const { categoryName: nameOf, categoryFilterOptions: categoryFilter } = useCatalog()
   const [month, setMonth] = useState(currentMonth())
   const [category, setCategory] = useState<ExpenseCategory | ''>('')
   const { data, loading, error, reload } = useAsync(() => fetchDashboard(month, category), [month, category])
-  const categoryName = category ? categoryLabels[category] : null
+  const categoryName = category ? nameOf(category) : null
 
   return (
     <>
@@ -164,7 +165,7 @@ export function DashboardPage() {
             {data.budgets.length > 0 && (
               <Card className="grid gap-x-12 gap-y-6 p-4 sm:gap-y-8 sm:p-8 md:grid-cols-2">
                 {data.budgets.map((b) => (
-                  <BudgetBar key={b.category} label={categoryLabels[b.category]} spent={b.spent} limit={b.limit ?? 0} />
+                  <BudgetBar key={b.category} label={nameOf(b.category)} spent={b.spent} limit={b.limit ?? 0} />
                 ))}
               </Card>
             )}
@@ -201,7 +202,7 @@ export function DashboardPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{e.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {categoryLabels[e.category]} · {e.paid_by}
+                        {nameOf(e.category)} · {e.paid_by}
                       </p>
                     </div>
                     <span className="figure whitespace-nowrap">{formatCurrency(e.amount)}</span>

@@ -10,8 +10,9 @@ import { useAsync } from '../../hooks/useAsync'
 import { cn } from '../../lib/cn'
 import { api, ApiError } from '../../lib/api'
 import { currentMonth, formatCurrency, formatMonth } from '../../lib/format'
-import { categoryLabels } from '../../lib/labels'
+import { moneyInputProps } from '../../lib/money'
 import type { BudgetRow } from '../../types'
+import { useCatalog } from '../catalog/useCatalog'
 import { BudgetBar } from './BudgetBar'
 
 const fetchBudgets = (month: string) => api.request<{ month: string; data: BudgetRow[] }>(`/budgets${api.query({ month })}`)
@@ -21,7 +22,7 @@ function BudgetEditor({ row, monthLabel, onSaved }: { row: BudgetRow; monthLabel
   const [value, setValue] = useState(row.limit ? String(row.limit) : '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const label = categoryLabels[row.category]
+  const label = useCatalog().categoryName(row.category)
   const dirty = value !== (row.limit ? String(row.limit) : '')
 
   async function save(e: FormEvent) {
@@ -62,12 +63,8 @@ function BudgetEditor({ row, monthLabel, onSaved }: { row: BudgetRow; monthLabel
           </label>
           <input
             id={`budget-${row.category}`}
-            type="number"
-            inputMode="numeric"
-            min={0}
             placeholder="No limit"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
+            {...moneyInputProps(value, setValue)}
             aria-invalid={!!error || undefined}
             className="h-11 w-full rounded-md border border-border bg-transparent px-3 text-base transition-all sm:text-sm duration-150 placeholder:text-muted-foreground/60 hover:border-border-hover focus-visible:border-accent aria-invalid:border-danger"
           />

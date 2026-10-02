@@ -73,7 +73,7 @@ class BudgetReportExportTest extends TestCase
         $csv = $res->streamedContent();
 
         $this->assertStringStartsWith("\xEF\xBB\xBFsep=,\n", $csv);
-        $this->assertStringContainsString('"Rice, 10kg",groceries,150000', $csv);
+        $this->assertStringContainsString('"Rice, 10kg",Groceries,150000', $csv);
         $this->assertStringNotContainsString('Fuel', $csv);
         $this->assertStringNotContainsString('April thing', $csv);
         $this->assertStringContainsString('expenses-2026-03.csv', $res->headers->get('content-disposition'));

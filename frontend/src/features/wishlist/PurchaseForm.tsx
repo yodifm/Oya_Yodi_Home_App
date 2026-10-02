@@ -4,25 +4,28 @@ import { Button } from '../../components/ui/Button'
 import { SelectField, TextField } from '../../components/ui/Field'
 import { ApiError } from '../../lib/api'
 import { formatCurrency, today } from '../../lib/format'
-import { bankForSubmit, categoryLabels, toOptions } from '../../lib/labels'
-import type { Bank, ExpenseCategory, PaymentMethod, WishlistItem } from '../../types'
+import { moneyInputProps } from '../../lib/money'
+import type { WishlistItem } from '../../types'
 import { useMemberOptions } from '../auth/useAuth'
+import { useCatalog } from '../catalog/useCatalog'
 import { PaymentFields } from '../expenses/PaymentFields'
 import { purchaseItem } from './api'
 
 /** "We bought it": records the actual price paid as an expense and closes the wish. */
 export function PurchaseForm({ item, onDone, onCancel }: { item: WishlistItem; onDone: () => void; onCancel: () => void }) {
   const { options: memberOptions, defaultName } = useMemberOptions()
+  const { categoryOptions, defaultCategory, defaultMethod, needsAccount } = useCatalog()
   const [form, setForm] = useState({
     amount: String(item.estimated_price),
-    category: 'household' as ExpenseCategory,
+    category: defaultCategory('household'),
     spent_at: today(),
-    payment_method: 'transfer' as PaymentMethod,
-    bank: '' as Bank | '',
+    payment_method: defaultMethod(),
+    payment_account: '',
     paid_by: defaultName,
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+  const showsAccount = needsAccount(form.payment_method)
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
@@ -32,7 +35,11 @@ export function PurchaseForm({ item, onDone, onCancel }: { item: WishlistItem; o
     setSaving(true)
     setErrors({})
     try {
-      await purchaseItem(item.id, { ...form, amount: Number(form.amount), bank: bankForSubmit(form.payment_method, form.bank) })
+      await purchaseItem(item.id, {
+        ...form,
+        amount: Number(form.amount),
+        payment_account: showsAccount ? form.payment_account || null : null,
+      })
       onDone()
     } catch (err) {
       if (err instanceof ApiError && err.status === 422) {
@@ -56,11 +63,7 @@ export function PurchaseForm({ item, onDone, onCancel }: { item: WishlistItem; o
       <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
         <TextField
           label="Price Paid (Rp)"
-          type="number"
-          inputMode="numeric"
-          min={0}
-          value={form.amount}
-          onChange={(e) => set('amount', e.target.value)}
+          {...moneyInputProps(form.amount, (v) => set('amount', v))}
           error={errors.amount}
           required
           autoFocus
@@ -68,21 +71,21 @@ export function PurchaseForm({ item, onDone, onCancel }: { item: WishlistItem; o
         <TextField label="Date" type="date" value={form.spent_at} onChange={(e) => set('spent_at', e.target.value)} error={errors.spent_at} required />
         <SelectField
           label="Category"
-          options={toOptions(categoryLabels)}
+          options={categoryOptions()}
           value={form.category}
-          onChange={(e) => set('category', e.target.value as ExpenseCategory)}
+          onChange={(e) => set('category', e.target.value)}
           error={errors.category}
         />
         <PaymentFields
           method={form.payment_method}
-          bank={form.bank}
+          account={form.payment_account}
           onMethodChange={(m) => set('payment_method', m)}
-          onBankChange={(b) => set('bank', b)}
+          onAccountChange={(a) => set('payment_account', a)}
           errors={errors}
         />
         <SelectField
           label="Paid By"
-          wrapperClassName={form.payment_method === 'transfer' ? undefined : 'sm:col-span-2'}
+          wrapperClassName={showsAccount ? undefined : 'sm:col-span-2'}
           options={memberOptions}
           value={form.paid_by}
           onChange={(e) => set('paid_by', e.target.value)}

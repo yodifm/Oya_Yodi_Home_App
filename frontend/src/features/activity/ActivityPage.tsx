@@ -10,15 +10,16 @@ import { cn } from '../../lib/cn'
 import { today } from '../../lib/format'
 import type { Paginated } from '../../types'
 import { useAuth } from '../auth/useAuth'
-import type { ActivityEntry, ActivitySubject } from './format'
-import { dayKey, dayLabel, describe, fieldLabel, formatValue, subjectLabels, summaryText, timeOf } from './format'
+import { useCatalog } from '../catalog/useCatalog'
+import type { ActivityEntry } from './format'
+import { dayKey, dayLabel, describe, fieldLabel, formatValue, summaryText, timeOf, typeFilterLabels } from './format'
 
 const fetchActivity = (params: Record<string, string | undefined>) =>
   api.request<Paginated<ActivityEntry>>(`/activity${api.query(params)}`)
 
 const typeOptions = [
   { value: '', label: 'All records' },
-  ...(Object.entries(subjectLabels) as [ActivitySubject, string][]).map(([value, label]) => ({ value, label })),
+  ...Object.entries(typeFilterLabels).map(([value, label]) => ({ value, label })),
 ]
 
 const actionTone = {
@@ -28,6 +29,7 @@ const actionTone = {
 } as const
 
 function Entry({ entry }: { entry: ActivityEntry }) {
+  const catalog = useCatalog()
   const changes = entry.changes ? Object.entries(entry.changes) : []
   return (
     <li className="flex gap-3 px-4 py-4 sm:gap-4 sm:px-8">
@@ -48,7 +50,7 @@ function Entry({ entry }: { entry: ActivityEntry }) {
           </time>
         </div>
         <p className={cn('mt-0.5 truncate', entry.action === 'deleted' && 'text-muted-foreground line-through decoration-danger/50')}>
-          {summaryText(entry)}
+          {summaryText(entry, catalog)}
         </p>
         {changes.length > 0 && (
           <dl className="mt-2 space-y-1 rounded-md bg-muted/60 px-3 py-2 text-xs">
@@ -61,12 +63,12 @@ function Entry({ entry }: { entry: ActivityEntry }) {
                   ) : (
                     <>
                       <span className="text-muted-foreground line-through decoration-muted-foreground/50">
-                        {formatValue(entry.subject_type, field, pair[0])}
+                        {formatValue(entry.subject_type, field, pair[0], catalog)}
                       </span>
                       <span aria-label="changed to" className="px-1.5 text-accent">
                         →
                       </span>
-                      <span className="font-medium">{formatValue(entry.subject_type, field, pair[1])}</span>
+                      <span className="font-medium">{formatValue(entry.subject_type, field, pair[1], catalog)}</span>
                     </>
                   )}
                 </dd>
@@ -107,7 +109,7 @@ export function ActivityPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Chapter VIII — Activity"
+        eyebrow="Chapter IX — Activity"
         title={
           <>
             Who Did <span className="italic text-accent">What</span>

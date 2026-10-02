@@ -2,9 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\Bank;
-use App\Enums\ExpenseCategory;
-use App\Enums\PaymentMethod;
 use App\Models\Expense;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -13,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ExpenseFactory extends Factory
 {
-    /** Plausible household line items with a typical rupiah range per category. */
+    /** Plausible household line items with a typical rupiah range per default category. */
     private const CATALOG = [
         'groceries' => [['Weekly market run', 'Monthly supermarket shop', 'Fruit & vegetables', 'Rice 10kg', 'Eggs & meat'], 80_000, 900_000],
         'food' => [['Lunch out', 'Food delivery', 'Bakso & es teh', 'Weekend brunch', 'Coffee & snacks'], 25_000, 400_000],
@@ -26,10 +23,18 @@ class ExpenseFactory extends Factory
         'other' => [['Donation', 'Birthday gift', 'Miscellaneous'], 30_000, 400_000],
     ];
 
+    /** The default payment methods (see the catalog migration) with their accounts. */
+    private const PAYMENTS = [
+        'cash' => [],
+        'transfer' => ['bca', 'line_bank', 'mandiri'],
+        'e-wallet' => [],
+    ];
+
     public function definition(): array
     {
-        $category = fake()->randomElement(ExpenseCategory::cases());
-        [$titles, $min, $max] = self::CATALOG[$category->value];
+        $category = fake()->randomElement(array_keys(self::CATALOG));
+        [$titles, $min, $max] = self::CATALOG[$category];
+        $method = fake()->randomElement(array_keys(self::PAYMENTS));
 
         return [
             'title' => fake()->randomElement($titles),
@@ -37,8 +42,8 @@ class ExpenseFactory extends Factory
             // Round to the nearest Rp 500 like real receipts.
             'amount' => (int) round(fake()->numberBetween($min, $max) / 500) * 500,
             'spent_at' => fake()->dateTimeBetween('-5 months', 'now')->format('Y-m-d'),
-            'payment_method' => $method = fake()->randomElement(PaymentMethod::cases()),
-            'bank' => $method === PaymentMethod::Transfer ? fake()->randomElement(Bank::cases()) : null,
+            'payment_method' => $method,
+            'payment_account' => self::PAYMENTS[$method] ? fake()->randomElement(self::PAYMENTS[$method]) : null,
             'paid_by' => fake()->randomElement(['Yodi', 'Oya']),
             'notes' => null,
         ];

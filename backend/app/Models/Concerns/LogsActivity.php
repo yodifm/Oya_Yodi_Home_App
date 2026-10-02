@@ -59,6 +59,8 @@ trait LogsActivity
 
             if ($key === 'password') {
                 $changes['password'] = null; // that it changed, never the value
+            } elseif ($key === 'archived_at') {
+                $changes['archived'] = [$this->getOriginal('archived_at') !== null, $this->archived_at !== null];
             } elseif ($key === 'receipt_path') {
                 $changes['receipt'] = [$this->getOriginal('receipt_path') !== null, $this->receipt_path !== null];
             } else {
