@@ -24,7 +24,7 @@ interface ExpenseFormProps {
 
 export function ExpenseForm({ initial, saving, errors, onSubmit, onCancel, onDelete }: ExpenseFormProps) {
   const { options: memberOptions, defaultName } = useMemberOptions()
-  const { categoryOptions, defaultCategory, defaultMethod, needsAccount } = useCatalog()
+  const { categoryOptions, defaultCategory, defaultMethod, showsAccount: accountShown } = useCatalog()
   const [form, setForm] = useState({
     title: initial?.title ?? '',
     category: initial?.category ?? defaultCategory('groceries'),
@@ -36,7 +36,10 @@ export function ExpenseForm({ initial, saving, errors, onSubmit, onCancel, onDel
     notes: initial?.notes ?? '',
   })
   const [receipt, setReceipt] = useState<ReceiptChange>({ kind: 'keep' })
-  const showsAccount = needsAccount(form.payment_method)
+  const showsAccount = accountShown(
+    form.payment_method,
+    initial ? { method: initial.payment_method, account: initial.payment_account } : undefined,
+  )
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [key]: value }))

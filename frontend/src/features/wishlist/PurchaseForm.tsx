@@ -14,7 +14,7 @@ import { purchaseItem } from './api'
 /** "We bought it": records the actual price paid as an expense and closes the wish. */
 export function PurchaseForm({ item, onDone, onCancel }: { item: WishlistItem; onDone: () => void; onCancel: () => void }) {
   const { options: memberOptions, defaultName } = useMemberOptions()
-  const { categoryOptions, defaultCategory, defaultMethod, needsAccount } = useCatalog()
+  const { categoryOptions, defaultCategory, defaultMethod, showsAccount: accountShown } = useCatalog()
   const [form, setForm] = useState({
     amount: String(item.estimated_price),
     category: defaultCategory('household'),
@@ -25,7 +25,7 @@ export function PurchaseForm({ item, onDone, onCancel }: { item: WishlistItem; o
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
-  const showsAccount = needsAccount(form.payment_method)
+  const showsAccount = accountShown(form.payment_method)
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [key]: value }))

@@ -24,7 +24,9 @@ trait ValidatesPayment
         $this->paymentMethod = PaymentMethod::where('key', (string) $this->input('payment_method'))->first();
         $this->methodHasAccounts = (bool) $this->paymentMethod?->accounts()->active()->exists();
 
-        if (! $this->methodHasAccounts) {
+        // Only a method with no accounts at all drops the account: when they are
+        // all hidden, an old expense keeps the one it was recorded with.
+        if (! $this->paymentMethod?->accounts()->exists()) {
             $this->merge(['payment_account' => null]);
         }
     }

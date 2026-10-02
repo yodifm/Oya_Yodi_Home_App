@@ -24,7 +24,7 @@ export function PaymentFields({
   onAccountChange: (account: string) => void
   errors: Record<string, string>
 }) {
-  const { methodOptions, accountOptions, needsAccount } = useCatalog()
+  const { methodOptions, accountOptions, needsAccount, showsAccount } = useCatalog()
 
   return (
     <>
@@ -35,14 +35,14 @@ export function PaymentFields({
         onChange={(e) => onMethodChange(e.target.value)}
         error={errors.payment_method}
       />
-      {needsAccount(method) && (
+      {showsAccount(method, initial) && (
         <SelectField
           label={method === 'transfer' ? 'Bank' : 'Account'}
           options={[{ value: '', label: 'Choose…' }, ...accountOptions(method, initial?.account)]}
           value={account}
           onChange={(e) => onAccountChange(e.target.value)}
           error={errors.payment_account}
-          required
+          required={needsAccount(method)}
         />
       )}
     </>

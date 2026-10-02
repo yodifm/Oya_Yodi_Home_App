@@ -56,6 +56,12 @@ export function useCatalog() {
         ),
       /** Whether an expense paid this way must say which account. */
       needsAccount: (method: string) => activeAccounts(method).length > 0,
+      /**
+       * Whether the form shows the account picker: when one is needed, or when
+       * editing a record whose account (of this method) has been hidden since.
+       */
+      showsAccount: (method: string, initial?: { method: string; account: string | null }) =>
+        activeAccounts(method).length > 0 || (!!initial?.account && initial.method === method),
       /** Filters also offer hidden categories, so their history stays findable. */
       categoryFilterOptions: [
         { value: '', label: 'All categories' },

@@ -129,6 +129,20 @@ class CatalogTest extends TestCase
         $this->postJson('/api/expenses', $this->expense(['payment_method' => 'transfer', 'payment_account' => 'line_bank']))->assertCreated();
     }
 
+    public function test_hiding_every_account_keeps_old_expenses_intact(): void
+    {
+        $expense = Expense::factory()->create(['payment_method' => 'transfer', 'payment_account' => 'bca']);
+        PaymentAccount::query()->update(['archived_at' => now()]);
+
+        // Editing keeps the hidden bank…
+        $this->putJson("/api/expenses/{$expense->id}", $this->expense(['payment_method' => 'transfer', 'payment_account' => 'bca']))
+            ->assertOk()->assertJsonPath('data.payment_account', 'bca');
+        // …and a new transfer no longer has to name one.
+        $this->postJson('/api/expenses', $this->expense(['payment_method' => 'transfer']))->assertCreated();
+        $this->postJson('/api/expenses', $this->expense(['payment_method' => 'transfer', 'payment_account' => 'bca']))
+            ->assertJsonValidationErrors('payment_account');
+    }
+
     public function test_reorder_sets_the_dropdown_order(): void
     {
         $ids = Category::ordered()->pluck('id')->reverse()->values()->all();
