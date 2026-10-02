@@ -1,0 +1,13 @@
+# OpenLiteSpeed rules for web/ (the site's running directory), copied here by
+# deploy.sh. /api goes to Laravel; every other path is the React app.
+RewriteEngine On
+
+# Pass the sign-in token through to PHP.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+RewriteRule ^api/ laravel.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]

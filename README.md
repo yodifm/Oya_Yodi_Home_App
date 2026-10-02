@@ -108,6 +108,21 @@ Always keep the password in quotes, and never add a second line for it under ano
 
 Check it with `php artisan notifications:test` (or `php artisan notifications:test someone@example.com`). A failed send never blocks saving; it is written to `storage/logs/laravel.log`.
 
+## Deploying (VPS)
+
+Live at https://oyayodihome.smartietls.online — an aaPanel site on OpenLiteSpeed with PHP 8.2. Under `/www/wwwroot/oyayodihome.smartietls.online/`:
+
+- `app/`: this repository. The production `backend/.env` lives only here.
+- `web/`: the built frontend plus `deploy/web/` (`.htaccess` routes `/api` through `laravel.php` to Laravel). It is the site's *Running directory*.
+
+To publish new code, push to GitHub, then on the VPS run:
+
+```bash
+bash /www/wwwroot/oyayodihome.smartietls.online/app/deploy/deploy.sh
+```
+
+After editing `.env` on the VPS, run `php artisan optimize` (or the deploy script again) so the change is picked up.
+
 ## API
 
 | Method | Endpoint | Notes |

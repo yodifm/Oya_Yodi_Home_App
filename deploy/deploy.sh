@@ -4,7 +4,8 @@
 #
 # Layout under the aaPanel site folder:
 #   app/   this repository (backend/.env lives here, never in git)
-#   web/   the built frontend — the site's "Running directory" in aaPanel
+#   web/   the built frontend + routing (deploy/web/) — the site's "Running
+#          directory" in aaPanel (OpenLiteSpeed)
 set -euo pipefail
 
 APP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -29,7 +30,10 @@ cd "$APP/frontend"
 npm ci --no-audit --no-fund
 npm run build
 mkdir -p "$WEB"
-rsync -a --delete --exclude .user.ini "$APP/frontend/dist/" "$WEB/"
+# Keep aaPanel's own files (.user.ini, Let's Encrypt challenges) in place.
+rsync -a --delete --exclude .user.ini --exclude .well-known "$APP/frontend/dist/" "$WEB/"
+# OpenLiteSpeed routing: /api → laravel.php → app/backend; the rest → index.html.
+cp "$APP/deploy/web/.htaccess" "$APP/deploy/web/laravel.php" "$WEB/"
 
 # PHP-FPM runs as www: it writes logs, cache and receipt photos.
 chown -R www:www "$APP/backend/storage" "$APP/backend/bootstrap/cache" "$WEB"
