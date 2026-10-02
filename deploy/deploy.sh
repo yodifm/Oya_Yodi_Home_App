@@ -38,6 +38,8 @@ mkdir -p "$WEB"
 rsync -a --delete --exclude .user.ini --exclude .well-known "$APP/frontend/dist/" "$WEB/"
 cp "$APP/deploy/web/.htaccess" "$WEB/"
 
-# PHP runs as www: it writes logs, cache and receipt photos.
-chown -R www:www "$APP/backend/storage" "$APP/backend/bootstrap/cache" "$WEB" "$API/index.php" "$API/.htaccess"
+# PHP runs as www: it writes logs, cache and receipt photos. aaPanel locks
+# .user.ini (chattr +i), so leave it out.
+chown -R www:www "$APP/backend/storage" "$APP/backend/bootstrap/cache" "$API/index.php" "$API/.htaccess"
+find "$WEB" ! -name .user.ini -exec chown www:www {} +
 echo "Deployed: $(git -C "$APP" log -1 --format='%h %s')"
