@@ -1,0 +1,11 @@
+{
+  "name": "yodi-oya",
+  "private": true,
+  "description": "Runs the Laravel API and the React dashboard together.",
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --names api,web --prefix-colors yellow,cyan \"cd backend && php artisan serve\" \"npm --prefix frontend run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}

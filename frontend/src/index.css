@@ -1,0 +1,214 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens — "Serif" editorial system.
+ * Every color, font and shadow used in the app comes from here, so a
+ * re-theme only ever touches this block.
+ */
+@theme {
+  --color-background: #fafaf8;
+  --color-foreground: #1a1a1a;
+  --color-muted: #f5f3f0;
+  --color-muted-foreground: #6b6b6b;
+  --color-accent: #b8860b;
+  --color-accent-secondary: #d4a84b;
+  --color-accent-foreground: #ffffff;
+  --color-accent-muted: rgb(184 134 11 / 0.06);
+  --color-border: #e8e4df;
+  --color-border-hover: #d6d0c8;
+  --color-card: #ffffff;
+  --color-ring: #b8860b;
+
+  /* Status tones — reserved for state, always paired with a text label. */
+  --color-success: #4a7c59;
+  --color-success-muted: rgb(74 124 89 / 0.1);
+  --color-danger: #a4453a;
+  --color-danger-muted: rgb(164 69 58 / 0.08);
+  --color-info: #4f6d8a;
+  --color-info-muted: rgb(79 109 138 / 0.1);
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Source Sans 3', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --shadow-sm: 0 1px 2px rgb(26 26 26 / 0.04);
+  --shadow-md: 0 4px 12px rgb(26 26 26 / 0.06);
+  --shadow-lg: 0 8px 24px rgb(26 26 26 / 0.08);
+  --shadow-accent: 0 4px 14px rgb(184 134 11 / 0.25);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    /* Controls give their own pressed feedback; drop the grey flash on tap. */
+    -webkit-tap-highlight-color: transparent;
+    line-height: 1.75;
+    letter-spacing: 0.01em;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display font-normal;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  ::selection {
+    background: rgb(184 134 11 / 0.18);
+  }
+}
+
+@layer components {
+  /* Tracked uppercase mono — section labels, meta info, table heads. */
+  .small-caps {
+    @apply font-mono text-xs font-medium uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  /* Serif tabular figures for money. */
+  .figure {
+    @apply font-display;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+}
+
+/* Paper texture: a faint noise layer across the whole canvas for a printed feel. */
+.paper::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.3;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out both;
+}
+
+/*
+ * Modal enter/exit. Phones: a bottom sheet slides up and back down.
+ * Larger screens: a centred card fades and settles in, and eases out.
+ * `.closing` is added by Modal.tsx, which closes the dialog on animationend.
+ */
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes sheet-down {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes card-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes backdrop-out {
+  to {
+    opacity: 0;
+  }
+}
+
+dialog.sheet[open] {
+  animation: card-in 0.2s ease-out;
+}
+
+dialog.sheet[open]::backdrop {
+  animation: backdrop-in 0.25s ease-out;
+}
+
+/* Exit rules come after the [open] rules: same specificity, so these win. */
+dialog.sheet.closing {
+  animation: card-out 0.16s ease-in forwards;
+}
+
+dialog.sheet.closing::backdrop {
+  animation: backdrop-out 0.22s ease-in forwards;
+}
+
+@media (max-width: 639px) {
+  dialog.sheet[open] {
+    animation: sheet-up 0.28s ease-out;
+  }
+
+  dialog.sheet.closing {
+    animation: sheet-down 0.22s ease-in forwards;
+  }
+}
+
+/* Room for the fixed mobile tab bar plus the iPhone home indicator. */
+.pb-tabbar {
+  padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 1024px) {
+  .pb-tabbar {
+    padding-bottom: 4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
